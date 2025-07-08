@@ -12,8 +12,11 @@ import numpy as np
 from ctypes import *
 import copy
 import time
+from pathlib import Path
+from pypylongrab import grab_frames
+import tifffile
 
-def main(wv_len: int):
+def load_mask(mask_path: Path, wv_len: int):
 
     #pixelpitch(0: 20um 1: 12.5um)
     pitch = 1
@@ -59,13 +62,16 @@ def main(wv_len: int):
         znk_arr_list.append(carr)
 
     carr_synth = FARRAY(0)
-    for _ in range(3):
-        phaseSynthesizer(znk_arr_list
-                        +[carr_correction]
-                        , carr_synth)
-        apply_lut(wv_len, carr_synth)
+    carr_mask = import_bmp_to_carr(mask_path)
+    phaseSynthesizer(
+        [carr_mask]
+        + znk_arr_list
+        +[carr_correction]
+                    , carr_synth)
+    apply_lut(wv_len, carr_synth)
 
-        showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_synth)
+    showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_synth)
+
 def import_bmp_to_carr(filepath):
     """
     将 uint8 BMP 文件导入为 1d C 数组
@@ -287,13 +293,13 @@ def showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, array):
     print(f"Time taken to display: {(end - beg)*1e3:.2f} ms")
     #wait until enter key input
     # input("please input enter key...")
-    time.sleep(1)
+    # time.sleep(1)
     
-    #close the window
-    Window_Term = Lcoslib.Window_Term
-    Window_Term.argtyes = [c_int]
-    Window_Term.restype = c_int
-    Window_Term(windowNo)
+    # #close the window
+    # Window_Term = Lcoslib.Window_Term
+    # Window_Term.argtyes = [c_int]
+    # Window_Term.restype = c_int
+    # Window_Term(windowNo)
     
     # return 0
 
@@ -332,6 +338,26 @@ def phaseSynthesizer(inputPatterns, outputArray):
         outputArray[i] = c_uint8(outputPattern[i] % 256)    
     
     return 0
-    
-main(wv_len=780)
+
+timeout = 60 # seconds
+check_interval = 5 # seconds
+basler_exposure_time = 10000 # microseconds
+n_frames = 1
+maskfile = Path("Z:/temp/mask1.bmp")
+framefile = Path("Z:/temp/frame.bmp")
+
+
+n_checks_max = timeout // check_interval
+n_checks = n_checks_max
+while n_checks:
+    if maskfile.exists():
+        load_mask(maskfile, wv_len=780)
+        maskfile.unlike() # remove the file after loading
+        avg_frame = grab_frames(basler_exposure_time, n_frames)
+        tifffile.imwrite(framefile, avg_frame)
+        n_checks = n_checks_max # top up n_checks
+    else:
+        time.sleep(check_interval)
+        n_checks -= 1
+print('mask-frame cycle closed')
 # %%
