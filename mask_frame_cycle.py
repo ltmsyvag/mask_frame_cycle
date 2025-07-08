@@ -16,27 +16,19 @@ from pathlib import Path
 from pypylongrab import grab_frames
 import tifffile
 
-def load_mask(mask_path: Path, wv_len: int):
 
+#LCOS pixel size
+x = 1272
+y = 1024
+
+#pixel number
+array_size = x * y
+# make the 8bit unsigned integer array type
+FARRAY = c_uint8 * array_size
+
+def make_correction_and_zernike_arrays(wv_len: int):
     #pixelpitch(0: 20um 1: 12.5um)
     pitch = 1
-    
-    #LCOS pixel size
-    x = 1272
-    y = 1024
-    
-    #LCOS-SML monitor number setting
-    monitorNo = 2
-    windowNo = 0
-    xShift = 0
-    yShift = 0
-    
-    #pixel number
-    array_size = x * y
-
-    # make the 8bit unsigned integer array type
-    FARRAY = c_uint8 * array_size
-    
     if wv_len == 780:
         carr_correction = import_bmp_to_carr("correction780.bmp")
     elif wv_len == 813:
@@ -60,16 +52,20 @@ def load_mask(mask_path: Path, wv_len: int):
         carr = FARRAY(0)
         make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, carr)
         znk_arr_list.append(carr)
+    return [carr_correction]+znk_arr_list 
+def load_mask(mask_path: Path, wv_len: int, carr_list: list):
 
+    #LCOS-SML monitor number setting
+    monitorNo = 2
+    windowNo = 0
+    xShift = 0
+    yShift = 0
     carr_synth = FARRAY(0)
     carr_mask = import_bmp_to_carr(mask_path)
     phaseSynthesizer(
-        [carr_mask]
-        + znk_arr_list
-        +[carr_correction]
+        [carr_mask]+carr_list
                     , carr_synth)
     apply_lut(wv_len, carr_synth)
-
     showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_synth)
 
 def import_bmp_to_carr(filepath):
@@ -339,20 +335,21 @@ def phaseSynthesizer(inputPatterns, outputArray):
     
     return 0
 
-timeout = 60 # seconds
-check_interval = 5 # seconds
+timeout = 30 # seconds
+check_interval = 3 # seconds
 basler_exposure_time = 10000 # microseconds
 n_frames = 1
 maskfile = Path("Z:/temp/mask1.bmp")
-framefile = Path("Z:/temp/frame.bmp")
+framefile = Path("Z:/temp/frame.tif")
 
 
 n_checks_max = timeout // check_interval
 n_checks = n_checks_max
+carr_list = make_correction_and_zernike_arrays(wv_len=780)
 while n_checks:
     if maskfile.exists():
-        load_mask(maskfile, wv_len=780)
-        maskfile.unlike() # remove the file after loading
+        load_mask(maskfile, wv_len=780, carr_list=carr_list)
+        maskfile.unlink() # remove the file after loading
         avg_frame = grab_frames(basler_exposure_time, n_frames)
         tifffile.imwrite(framefile, avg_frame)
         n_checks = n_checks_max # top up n_checks
