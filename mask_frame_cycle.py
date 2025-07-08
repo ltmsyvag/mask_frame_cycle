@@ -359,5 +359,6 @@ while n_checks:
     else:
         time.sleep(check_interval)
         n_checks -= 1
+        print(f'{n_checks} checks before timeout')
 print('mask-frame cycle closed')
 # %%
