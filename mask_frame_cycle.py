@@ -53,7 +53,7 @@ def make_correction_and_zernike_arrays(wv_len: int):
         make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, carr)
         znk_arr_list.append(carr)
     return [carr_correction]+znk_arr_list 
-def load_mask(mask_path: Path, wv_len: int, carr_list: list):
+def load_mask(mask_path: Path, wv_len: int, instrument_carr_list: list):
 
     #LCOS-SML monitor number setting
     monitorNo = 2
@@ -63,7 +63,7 @@ def load_mask(mask_path: Path, wv_len: int, carr_list: list):
     carr_synth = FARRAY(0)
     carr_mask = import_bmp_to_carr(mask_path)
     phaseSynthesizer(
-        [carr_mask]+carr_list
+        [carr_mask]+instrument_carr_list
                     , carr_synth)
     apply_lut(wv_len, carr_synth)
     showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_synth)
@@ -180,10 +180,10 @@ framefile = Path("Z:/实验数据/2025/7月/7.8/自动化迭代相图/camera/fra
 
 n_checks_max = timeout // check_interval
 n_checks = n_checks_max
-carr_list = make_correction_and_zernike_arrays(wv_len=813)
+instrument_carr_list = make_correction_and_zernike_arrays(wv_len=813)
 while n_checks:
     if maskfile.exists():
-        load_mask(maskfile, wv_len=813, carr_list=carr_list)
+        load_mask(maskfile, wv_len=813, instrument_carr_list=instrument_carr_list)
         maskfile.unlink() # remove the file after loading
         avg_frame = grab_frames(basler_exposure_time, n_frames)
         tifffile.imwrite(framefile, avg_frame)
