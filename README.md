@@ -1,10 +1,10 @@
 为 105 写的 GS 自动迭代的仪器控制部分. 脚本流程:
-1. 从 Z 盘取一张 mask.bmp (如果不存在, 则重复 check 直到 timeout 自动关闭)
+1. 从 Z 盘取一张 `mask.bmp` (如果不存在, 则重复 check 直到 timeout 自动关闭)
 2. 将 mask 和 correction, zernike 合并(用滨松提供的函数), 最后 apply lut. correction 和 lut 均有 780 和 813 两种波长选择
-3. 将 mask.bmp 从 Z 盘上删除
+3. 将 `mask.bmp` 从 Z 盘上删除
 4. 将合并的 mask 投屏到 SLM 上(滨松函数)
-5. 用 balser 相机拍照, 得到 frame.tif
-6. 将 frame.tif 上传到 Z 盘, 供 matlab 操作的 GS 算法脚本读取
+5. 用 balser 相机拍照, 得到 `frame.tif`
+6. 将 `frame.tif` 上传到 Z 盘, 供 matlab 操作的 GS 算法脚本读取
 7. 回到第一步
 
 本 repo 中的文件:
