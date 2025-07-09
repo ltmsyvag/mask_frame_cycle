@@ -335,20 +335,20 @@ def phaseSynthesizer(inputPatterns, outputArray):
     
     return 0
 
-timeout = 30 # seconds
-check_interval = 3 # seconds
-basler_exposure_time = 10000 # microseconds
-n_frames = 1
-maskfile = Path("Z:/temp/mask1.bmp")
-framefile = Path("Z:/temp/frame.tif")
+timeout = 300 # seconds
+check_interval = 1 # seconds
+basler_exposure_time = 10 # microseconds
+n_frames = 10
+maskfile = Path("Z:/实验数据/2025/7月/7.8/自动化迭代相图/phase_input/mask.bmp")
+framefile = Path("Z:/实验数据/2025/7月/7.8/自动化迭代相图/camera/frame.tif")
 
 
 n_checks_max = timeout // check_interval
 n_checks = n_checks_max
-carr_list = make_correction_and_zernike_arrays(wv_len=780)
+carr_list = make_correction_and_zernike_arrays(wv_len=813)
 while n_checks:
     if maskfile.exists():
-        load_mask(maskfile, wv_len=780, carr_list=carr_list)
+        load_mask(maskfile, wv_len=813, carr_list=carr_list)
         maskfile.unlink() # remove the file after loading
         avg_frame = grab_frames(basler_exposure_time, n_frames)
         tifffile.imwrite(framefile, avg_frame)
