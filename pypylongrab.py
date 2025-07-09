@@ -2,7 +2,8 @@
 # demo 源于 https://github.com/basler/pypylon
 from pypylon import pylon
 import numpy as np
-def grab_frames(exposure_time: float, n_frames: int):
+import numpy.typing as npt
+def grab_frames(exposure_time: float, n_frames: int)->npt.NDArray[np.uint8]:
     """
     exposure_time 单位是微秒,
     返回 n 张图像的平均帧 (uint8)

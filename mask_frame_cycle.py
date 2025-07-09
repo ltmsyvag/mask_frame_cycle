@@ -10,12 +10,10 @@ Created on Mon May 18 14:10:00 2020
 from PIL import Image
 import numpy as np
 from ctypes import *
-import copy
 import time
 from pathlib import Path
 from pypylongrab import grab_frames
 import tifffile
-
 
 #LCOS pixel size
 x = 1272
@@ -26,7 +24,10 @@ array_size = x * y
 # make the 8bit unsigned integer array type
 FARRAY = c_uint8 * array_size
 
-def make_correction_and_zernike_arrays(wv_len: int):
+def make_correction_and_zernike_arrays(wv_len: int)->list: # return a list of the strange FARRAY type
+    """
+    将 SLMControl3.exe 生成的 correction mask 和 Zernike masks (很多个) 放在一个列表中返回
+    """
     #pixelpitch(0: 20um 1: 12.5um)
     pitch = 1
     if wv_len == 780:
@@ -53,8 +54,14 @@ def make_correction_and_zernike_arrays(wv_len: int):
         make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, carr)
         znk_arr_list.append(carr)
     return [carr_correction]+znk_arr_list 
-def load_mask(mask_path: Path, wv_len: int, instrument_carr_list: list):
 
+def load_mask(mask_path: Path, wv_len: int, instrument_carr_list: list)->None:
+    """
+    读取用户的 mask 文件, 
+    和 make_correction_and_zernike_arrays 提供的 SLM 仪器 mask 合成一个 mask (简单的 255 wrapping), 
+    最后乘以 SLMControl.exe 显示的 LUT 因子 (round 后再取为 uint8)
+    将结果投屏 SLM
+    """
     #LCOS-SML monitor number setting
     monitorNo = 2
     windowNo = 0
@@ -92,6 +99,7 @@ def apply_lut(laser_wvlen, carr):
     arr = (np.round(arr * (num_wrap / 255))).astype(np.uint8)
     for i in range(len(arr)):
         carr[i] = c_uint8(arr[i])
+
 def print_time_consumption(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -104,7 +112,7 @@ def print_time_consumption(func):
 @print_time_consumption
 def make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, array):
     '''
-    haiteng 按照 c library header 文件做的 zernike mask 函数, hamamatsu 没有提供
+    haiteng 按照 Image_Control.h 文件做的 zernike mask 函数, hamamatsu 没有提供
     '''
     #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
     Lcoslib = windll.LoadLibrary("./Image_Control.dll")
