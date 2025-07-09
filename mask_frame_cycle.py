@@ -3,7 +3,7 @@
 """
 Created on Mon May 18 14:10:00 2020
 
-@author: HPK
+@author: HPK (original file `LCOS-SLM_python_sample_01.py`)
 @edited: haiteng 2025
 """
 
@@ -81,7 +81,7 @@ def import_bmp_to_carr(filepath):
     return carr
 
 def apply_lut(laser_wvlen, carr):
-    dict_wvlen_numwrap = {
+    dict_wvlen_numwrap = { # 下面的两个 2π wrap 对应的像素值来源于滨松 GUI, SLMcontrol3.exe 
         780 : 205,
         813 : 214,
     }
@@ -101,110 +101,6 @@ def print_time_consumption(func):
         return result
     return wrapper
 
-def makeAxiconLensArray(top, pitch, x, y, array):
-    '''
-    the function for making AxiconLens pattern array
-    double top: Top level of AxiconLens pattern. (/pi rad)
-    int pitch: Pixel pitch. 0: 20um 1: 1.25um
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    8bit unsigned integer array array: output array
-    '''
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll") #for cdll
-    Lcoslib = windll.LoadLibrary("./Image_Control.dll") #for windll
-    AxiconLens = Lcoslib.AxiconLens
-    AxiconLens.argtyes = [c_double, c_int, c_int, c_int, c_void_p, c_void_p]
-    AxiconLens.restype = c_int
-    if(pitch != 0 and pitch != 1):
-        print("Error: AxiconLensFunction. invalid argument (pitch).")
-        return -1
-    # input argument to dll function.
-    AxiconLens(c_double(top), pitch, x, y, byref(c_int(x*y)), byref(array))
-    return 0
-
-def makeCylindricalLensArray(forcus, wavelength, pitch, modeSelect, x, y, array):
-    '''
-    the function for making CylindricalLens pattern array
-    int focus: the forcus of cylindrical lens. (mm)
-    int wavelength: the wavelength of light. (nm)
-    int pitch: Pixel pitch. 0: 20um 1: 1.25um
-    int modeSelect: 0: horizontal or 1: vertical
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    8bit unsigned int array array: output array
-    '''
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
-    CylindricalLens = Lcoslib.CylindricalLens
-    CylindricalLens.argtyes = [c_int, c_int, c_int, c_int, c_int, c_int, c_void_p, c_void_p]
-    CylindricalLens.restype = c_int
-    if(pitch != 0 and pitch != 1):
-        print("Error: CylindricalLensFunction. invalid argument (pitch).")
-        return -1
-    CylindricalLens(forcus, wavelength, pitch, modeSelect, x, y, byref(c_int(x*y)), byref(array))
-    return 0
-
-def makeDiffractionPatternArray(rowOrColumn, gradiationNo, gradiationWidth, slipFactor, x, y, array):
-    '''
-    the function for making Diffraction pattern array
-    int rowOrColumn: 0: horizontal or 1: vertical
-    int gradiationNo: the number of gradiation.
-    int gradiationWidth: the width of gradiation.
-    int slipFactor: slip factor.
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    8bit unsigned int array array: output array
-    '''
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
-    Diffraction_pattern = Lcoslib.Diffraction_pattern
-    Diffraction_pattern.argtyes = [c_int, c_int, c_int, c_int, c_int, c_int, c_void_p, c_void_p]
-    Diffraction_pattern.restype = c_int
-    Diffraction_pattern(rowOrColumn, gradiationNo, gradiationWidth, slipFactor, x, y, byref(c_int(x*y)), byref(array))
-    return 0
-
-def makeLaguerreGaussModeArray(p, m, pitch, beamSize, x, y, array):
-    '''
-    the function for making LaguerreGaussMode pattern array
-    int p: radial index
-    int m: azimuthal index 
-    int pitch: Pixel pitch. 0: 20um 1: 1.25um
-    double beamSize: Beam size (mm)
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    8bit unsigned int array array: output array
-    '''
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
-    LaguerreGaussMode = Lcoslib.LaguerreGaussMode
-    LaguerreGaussMode.argtyes = [c_int, c_int, c_int, c_double, c_int, c_int, c_void_p, c_void_p]
-    LaguerreGaussMode.restype = c_int
-    if(pitch != 0 and pitch != 1):
-        print("Error: LaguerreGaussModeFunction. invalid argument (pitch).")
-        return -1
-    LaguerreGaussMode(p, m, pitch, c_double(beamSize), x, y, byref(c_int(x*y)), byref(array))
-    return 0
-
-def makeFresnelLensArray(forcus, wavelength, pitch, x, y, array):
-    '''
-    the function for making FresnelLens pattern array
-    int focus: the forcus of cylindrical lens. (mm)
-    int wavelength: the wavelength of light. (nm)
-    int pitch: Pixel pitch. 0: 20um 1: 1.25um
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    8bit unsigned int array array: output array
-    '''
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
-    FresnelLens = Lcoslib.FresnelLens
-    FresnelLens.argtyes = [c_int, c_int, c_int, c_int, c_int, c_int, c_void_p, c_void_p]
-    FresnelLens.restype = c_int
-    if(pitch != 0 and pitch != 1):
-        print("Error: FresnelLensFunction. invalid argument (pitch).")
-        return -1
-    FresnelLens(forcus, wavelength, pitch, x, y, byref(c_int(x*y)), byref(array))
-    return 0
 @print_time_consumption
 def make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, array):
     '''
@@ -216,47 +112,6 @@ def make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, array):
     Zernike.argtypes = [c_int, c_int, c_double, c_double, c_int, c_int, c_int, c_void_p, c_void_p]
     Zernike.restype = c_int
     Zernike(m, n, beam_diam_mm, coeff, pitch, x, y, byref(c_int(x*y)), byref(array))
-    return 0
-
-def makeBmpArray(filepath, x, y, outArray):
-    '''
-    the function for making FresnelLens pattern array
-    String filepath: image file path.
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    8bit unsigned int array outArray: output array
-    '''
-    im = Image.open(filepath)
-    imageHeight, imageWidth = im.size
-    im_gray = im.convert("L")
-    
-    print("Imagesize = {} x {}".format(imageWidth, imageHeight))
-    
-    for i in range(imageWidth):
-        for j in range(imageHeight):
-            outArray[i+imageWidth*j] = im_gray.getpixel((i,j))
-    
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
-    
-    #Create CGH
-    inArray = copy.deepcopy(outArray)
-    Create_CGH_OC = Lcoslib.Create_CGH_OC
-    Create_CGH_OC.argtyes = [c_void_p, c_int, c_int, c_int, c_int, c_void_p, c_void_p]
-    Create_CGH_OC.restype = c_int
-    
-    repNo = 100
-    progressBar = 1
-    Create_CGH_OC(byref(inArray), repNo, progressBar, imageWidth, imageHeight, byref(c_int(imageHeight*imageWidth)), byref(outArray))
-    
-    #Tilling the image
-    inArray = copy.deepcopy(outArray)
-    Image_Tiling = Lcoslib.Image_Tiling
-    Image_Tiling.argtyes = [c_void_p, c_int, c_int, c_int, c_int, c_int, c_void_p, c_void_p]
-    Image_Tiling.restype = c_int
-    
-    Image_Tiling(byref(inArray), imageWidth, imageHeight, imageHeight*imageWidth, x, y, byref(c_int(x*y)), byref(outArray))
-    
     return 0
 
 
@@ -296,27 +151,7 @@ def showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, array):
     # Window_Term.argtyes = [c_int]
     # Window_Term.restype = c_int
     # Window_Term(windowNo)
-    
-    # return 0
 
-def imageRotation(inputArray, degree, x, y, outputArray):
-    '''
-    the function for Srotating image
-    input 1D array inputArray: input array. 
-    double degree: rotation degree (deg.)
-    int x: Pixel number of x-dimension
-    int y: Pixel number of y-dimension
-    output 1D array outputArray: output array. 
-    '''  
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
-    
-    Image_Rotation = Lcoslib.Image_Rotation
-    Image_Rotation.argtyes = [c_void_p, c_double, c_int, c_int, c_void_p, c_void_p]
-    Image_Rotation.restype = c_int
-    Image_Rotation(byref(inputArray), c_double(degree), x, y, byref(c_int(x*y)), byref(outputArray))
-    
-    return 0
 
 @print_time_consumption
 def phaseSynthesizer(inputPatterns, outputArray):
@@ -337,7 +172,7 @@ def phaseSynthesizer(inputPatterns, outputArray):
 
 timeout = 300 # seconds
 check_interval = 1 # seconds
-basler_exposure_time = 10 # microseconds
+basler_exposure_time = 10 # µs
 n_frames = 10
 maskfile = Path("Z:/实验数据/2025/7月/7.8/自动化迭代相图/phase_input/mask.bmp")
 framefile = Path("Z:/实验数据/2025/7月/7.8/自动化迭代相图/camera/frame.tif")
