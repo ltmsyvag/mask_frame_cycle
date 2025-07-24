@@ -1,0 +1,7 @@
+*
+!*.py
+!*/
+!correction780.bmp
+!correction813.bmp
+!Image_Control.dll
+!.gitignore
