@@ -23,6 +23,7 @@ y = 1024
 array_size = x * y
 # make the 8bit unsigned integer array type
 FARRAY = c_uint8 * array_size
+dll_path_abs = r"C:\Users\Tweezer Lab\OneDrive\Desktop\mask_frame_cycle\SLM_module\Image_Control.dll" # 出于奇怪的原因， 必须用 dll 的绝对路径才能在 dashboard 中不报错
 
 def print_time_consumption(func):
     def wrapper(*args, **kwargs):
@@ -142,15 +143,14 @@ def make_zernike_array(m, n, beam_diam_mm, coeff, pitch, x, y, array):
     '''
     haiteng 按照 Image_Control.h 文件做的 zernike mask 函数, hamamatsu 没有提供
     '''
-    #Lcoslib = cdll.LoadLibrary("Image_Control.dll")
-    Lcoslib = windll.LoadLibrary("SLM_module/Image_Control.dll")
+    Lcoslib = windll.LoadLibrary(dll_path_abs)
     Zernike = Lcoslib.Zernike
     Zernike.argtypes = [c_int, c_int, c_double, c_double, c_int, c_int, c_int, c_void_p, c_void_p]
     Zernike.restype = c_int
     Zernike(m, n, beam_diam_mm, coeff, pitch, x, y, byref(c_int(x*y)), byref(array))
     return 0
 
-Lcoslib = windll.LoadLibrary("SLM_module/Image_Control.dll")
+Lcoslib = windll.LoadLibrary(dll_path_abs)
 
 #Select LCOS window
 Window_Settings = Lcoslib.Window_Settings
@@ -189,7 +189,7 @@ def showOn2ndDisplay_(monitorNo, windowNo, x, xShift, y, yShift, array):
     int yShift: shift pixels of y-dimension
     8bit unsigned int array array: output array
     '''
-    Lcoslib = windll.LoadLibrary("Image_Control.dll")
+    Lcoslib = windll.LoadLibrary(dll_path_abs)
     
     #Select LCOS window
     Window_Settings = Lcoslib.Window_Settings
