@@ -6,7 +6,7 @@ Created on Mon May 18 14:10:00 2020
 @author: HPK (original file `LCOS-SLM_python_sample_01.py`)
 @edited: haiteng 2025
 """
-
+import os
 from PIL import Image
 import numpy as np
 from ctypes import *
@@ -23,7 +23,9 @@ y = 1024
 array_size = x * y
 # make the 8bit unsigned integer array type
 FARRAY = c_uint8 * array_size
-dll_path_abs = r"C:\Users\Tweezer Lab\OneDrive\Desktop\mask_frame_cycle\SLM_module\Image_Control.dll" # 出于奇怪的原因， 必须用 dll 的绝对路径才能在 dashboard 中不报错
+# dll_path_abs = r"C:\Users\Tweezer Lab\OneDrive\Desktop\mask_frame_cycle\SLM_module\Image_Control.dll" # 出于奇怪的原因， 必须用 dll 的绝对路径才能在 dashboard 中不报错
+script_dir = os.path.dirname(os.path.abspath(__file__))
+dll_path_abs = script_dir+ r"\Image_Control.dll" # 出于奇怪的原因， 必须用 dll 的绝对路径才能在 dashboard 中不报错
 
 def print_time_consumption(func):
     def wrapper(*args, **kwargs):
@@ -41,9 +43,9 @@ def make_correction_and_zernike_arrays(wv_len: int=813)->list: # return a list o
     #pixelpitch(0: 20um 1: 12.5um)
     pitch = 1
     if wv_len == 780:
-        carr_correction = import_bmp_to_carr("SLM_module/correction780.bmp")
+        carr_correction = import_bmp_to_carr(script_dir + r'\correction780.bmp')
     elif wv_len == 813:
-        carr_correction = import_bmp_to_carr("SLM_module/correction813.bmp")
+        carr_correction = import_bmp_to_carr(script_dir + r'\correction813.bmp')
     else:
         raise ValueError(f"Unsupported wavelength: {wv_len}")
     
@@ -91,23 +93,8 @@ windowNo = 0
 xShift = 0
 yShift = 0
 @print_time_consumption
-def apply_mask(carr_mask,
-              instrument_carr_list: list=[],
-              use_lut: bool=True,
-              wv_len: int=813)->None:
-    """
-    从列表中读取用户的 mask 文件, 
-    和 make_correction_and_zernike_arrays 提供的 SLM 仪器 mask 合成一个 mask (简单的 255 wrapping), 
-    最后乘以 SLMControl.exe 显示的 LUT 因子 (round 后再取为 uint8)
-    将结果投屏 SLM
-    """
-    carr_synth = FARRAY(0)
-    phaseSynthesizer(
-        [carr_mask]+instrument_carr_list
-                    , carr_synth)
-    if use_lut:
-        apply_lut(wv_len, carr_synth)
-    showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_synth)
+def push_mask(carr_mask)->None:
+    showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_mask)
 
 
 
@@ -162,7 +149,7 @@ Window_Settings(monitorNo, windowNo, xShift, yShift)
 Window_Array_to_Display = Lcoslib.Window_Array_to_Display
 Window_Array_to_Display.argtypes = [c_void_p, c_int, c_int, c_int, c_int]
 Window_Array_to_Display.restype = c_int
-@print_time_consumption
+# @print_time_consumption
 def showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, array):
     '''
     the function for showing on LCOS display
@@ -232,8 +219,22 @@ def phaseSynthesizer(inputPatterns, outputArray):
         outputArray[i] = c_uint8(outputPattern[i] % 256)    
     
     return 0
-def phaseSynthesizer(inputPatterns, outputArray):
-    pass
+
+def load_and_correct_masks(list_mask_paths: list)->list:
+    lst_correction_carrs = make_correction_and_zernike_arrays()
+
+    lst_uncorrected_carrs = []
+    for i, path in enumerate(list_mask_paths):
+        lst_uncorrected_carrs.append(import_bmp_to_carr(path))
+        print(f'mask {i} converted')
+    lst_corrected_carrs = []
+    for i, this_carr in enumerate(lst_uncorrected_carrs):
+        carr_synth = FARRAY(0)
+        phaseSynthesizer([this_carr]+lst_correction_carrs, carr_synth)
+        lst_corrected_carrs.append(carr_synth)
+        print(f'mask {i} corrected')
+    return lst_corrected_carrs
+
 
 
 # %%
