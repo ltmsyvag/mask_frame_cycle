@@ -161,10 +161,10 @@ def showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, array):
     int yShift: shift pixels of y-dimension
     8bit unsigned int array array: output array
     '''
-    beg = time.time()
+    # beg = time.time()
     Window_Array_to_Display(array, x, y, windowNo, x*y)
-    end = time.time()
-    print(f"Time taken to display: {(end - beg)*1e3:.2f} ms")
+    # end = time.time()
+    # print(f"Time taken to display: {(end - beg)*1e3:.2f} ms")
 def showOn2ndDisplay_(monitorNo, windowNo, x, xShift, y, yShift, array):
     '''
     the function for showing on LCOS display
