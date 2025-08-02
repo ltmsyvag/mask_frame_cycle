@@ -220,13 +220,14 @@ def phaseSynthesizer(inputPatterns, outputArray):
     
     return 0
 
+def load_masks(list_mask_paths: list)->list:
+    lst_uncorrected_carrs = []
+    for path in list_mask_paths:
+        lst_uncorrected_carrs.append(import_bmp_to_carr(path))
+    return lst_uncorrected_carrs
 def load_and_correct_masks(list_mask_paths: list)->list:
     lst_correction_carrs = make_correction_and_zernike_arrays()
-
-    lst_uncorrected_carrs = []
-    for i, path in enumerate(list_mask_paths):
-        lst_uncorrected_carrs.append(import_bmp_to_carr(path))
-        print(f'mask {i} converted')
+    lst_uncorrected_carrs = load_masks(list_mask_paths)
     lst_corrected_carrs = []
     for i, this_carr in enumerate(lst_uncorrected_carrs):
         carr_synth = FARRAY(0)
