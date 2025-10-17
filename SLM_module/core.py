@@ -49,17 +49,11 @@ def make_correction_and_zernike_arrays(wv_len: int=813)->list: # return a list o
     else:
         raise ValueError(f"Unsupported wavelength: {wv_len}")
     
-    beam_diam_mm = 14.0
+    beam_diam_mm = 15.0
     znk_arr_list = []
     nmcoeff_list = [
-        (2,0,-0.55),
-        (2,-2,0.3),
-        (2,2,0.3),
-        (3,-3,0.1),
-        (3,3,0.1),
-        (4,0,-0.2),
-        (4,-4,-0.3),
-        (4,4,0.8),
+        (2,0,2.8),
+        (2,2,-0.5),
         ]
     for n,m,coeff in nmcoeff_list:
         carr = FARRAY(0)
@@ -92,6 +86,7 @@ monitorNo = 2
 windowNo = 0
 xShift = 0
 yShift = 0
+
 @print_time_consumption
 def push_mask(carr_mask)->None:
     showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_mask)
@@ -237,5 +232,9 @@ def load_and_correct_masks(list_mask_paths: list)->list:
     return lst_corrected_carrs
 
 
+@print_time_consumption
+def load_and_push_mask(path: str)->None:
+    carr_mask = import_bmp_to_carr(path)
+    showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_mask)
 
 # %%
