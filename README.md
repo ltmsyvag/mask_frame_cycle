@@ -1,3 +1,10 @@
+# branches
+
+## SLM_module
+
+SLM 重排所用硬件控制模组, 放在 artiq-master 目录下可以直接被实验 py 脚本识别
+
+## mask_frame_cycle
 为 105 写的 GS 自动迭代的仪器控制部分. 脚本流程:
 1. 从 Z 盘取一张 `mask.bmp` (如果不存在, 则重复 check 直到 timeout 自动关闭)
 2. 将 mask 和 correction, zernike 合并(用滨松提供的函数), 最后 apply lut. correction 和 lut 均有 780 和 813 两种波长选择

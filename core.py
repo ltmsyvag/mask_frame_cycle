@@ -92,18 +92,22 @@ def push_mask(carr_mask)->None:
     showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_mask)
 
 
+def nparray_to_carrarr(arr: np.ndarray):
+    arr = arr.flatten()
+    CARR = c_uint8 * len(arr)
+    carr = CARR(0)
+    for i in range(len(arr)):
+        carr[i] = c_uint8(arr[i])
+    return carr
 
 def import_bmp_to_carr(filepath):
     """
     将 uint8 BMP 文件导入为 1d C 数组
     """
     im = Image.open(filepath)
-    arr = np.array(im).flatten()
-    CARR = c_uint8 * len(arr)
-    carr = CARR(0)
-    for i in range(len(arr)):
-        carr[i] = c_uint8(arr[i])
-    return carr
+    arr = np.array(im)
+    return nparray_to_carrarr(arr)
+
 
 def apply_lut(laser_wvlen, carr):
     dict_wvlen_numwrap = { # 下面的两个 2π wrap 对应的像素值来源于滨松 GUI, SLMcontrol3.exe 
@@ -237,4 +241,7 @@ def load_and_push_mask(path: str)->None:
     carr_mask = import_bmp_to_carr(path)
     showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_mask)
 
+def push_nparray(arr: np.ndarray):
+    carr_mask = nparray_to_carrarr(arr)
+    showOn2ndDisplay(monitorNo, windowNo, x, xShift, y, yShift, carr_mask)
 # %%
